@@ -21,13 +21,9 @@ async function main() {
   console.log("Account balance:", (await deployer.getBalance()).toString());
 
   const AutoArtist = await ethers.getContractFactory("AutoArtist");
-  const autoArtist = await AutoArtist.deploy({
-    maxPrice: ethers.utils.parseEther("1"),
-    minPrice: ethers.utils.parseEther("0.001"),
-    priceDelta: ethers.utils.parseEther("0.001"),
-    timeDelta: 5 * 60, // 5 mins
-    expirationTime: 30 * 60, // 24 hours
-  });
+  const autoArtist = await AutoArtist.deploy(
+    1 * 60 * 60 // bidding duration in seconds
+  );
   await autoArtist.deployed();
 
   console.log("AutoArtist address:", autoArtist.address);

@@ -9,33 +9,29 @@ contract AutoArtist is ERC721URIStorage, Ownable {
   using Counters for Counters.Counter;
   Counters.Counter private _tokenIds;
 
-  // Seed data to calculate price
-  struct PriceSeed {
-    uint256 maxPrice;
-    uint256 minPrice;
-    uint256 priceDelta;
-    uint256 timeDelta;
-    uint256 expirationTime;
-  }
-
-  // mapping token id => mint time
-  mapping(uint256 => uint256) public mintTimes;
   // mapping token id => creator address
   mapping(uint256 => address payable) public creators;
-  // price seed
-  PriceSeed public priceSeed;
-  // Mapping from token ID to price
-  mapping(uint256 => uint256) private prices;
-    
+  // mapping token id => highest bids / prices
+  mapping(uint256 => uint256) public highestBids;
+  // mapping token id => highest bidder
+  mapping(uint256 => address) public highestBidders;
+  // mapping token id => auction end time
+  mapping(uint256 => uint256) public auctionEndTimes;
+  // mapping token id => auction ended
+  mapping(uint256 => bool) public auctionFinalizations;
 
-  constructor(PriceSeed memory _priceSeed) ERC721("AutoArtist", "AA") {
-    priceSeed.maxPrice = _priceSeed.maxPrice;
-    priceSeed.minPrice = _priceSeed.minPrice;
-    priceSeed.priceDelta = _priceSeed.priceDelta;
-    priceSeed.timeDelta = _priceSeed.timeDelta;
-    priceSeed.expirationTime = _priceSeed.expirationTime;
+  // Allowed withdrawals of previous bids
+  mapping(address => uint) pendingReturns;
+
+  // duration in seconds where bids are allowed
+  uint public biddingDuration;
+
+  event HighestBidIncreased(uint indexed tokenId, address bidder, uint amount);
+  event AuctionEnded(uint indexed tokenId, address winner, uint amount);  
+
+  constructor(uint256 _biddingDuration) ERC721("AutoArtist", "AA") {
+    biddingDuration = _biddingDuration;
   }
-
 
   function mint(
     address payable creator,
@@ -47,67 +43,94 @@ contract AutoArtist is ERC721URIStorage, Ownable {
     _mint(address(this), id);
     _setTokenURI(id, tokenURI);
     creators[id] = creator;
+    auctionEndTimes[id] = block.timestamp + biddingDuration;
  
     return id;
   }
 
-  function buy(uint256 tokenId) external payable {
-    address from = ownerOf(tokenId);
-    address to = msg.sender;
-    address payable creator = creators[tokenId];
-    uint256 currentPrice = price(tokenId);
-    bool isExpired = getIsExpired(tokenId);
+  function bid(uint256 tokenId) public payable {
+    address tokenOwner = ownerOf(tokenId);
+    uint256 auctionEndTime = auctionEndTimes[tokenId];
+    uint256 highestBid = highestBids[tokenId];
 
-    require(from == address(this), 'Owner is not the contract');
+    require(tokenOwner == address(this), 'Owner is not the contract');
+    require(block.timestamp <= auctionEndTime, 'Auction already ended');
 
-    // if buy phase expired, creator gets token 
-    if (isExpired) {
-      return transferFrom(from, creator, tokenId);
+    require(msg.value > highestBid, 'There already is a higher bid');
+
+    // set new highest bid and bidder
+    highestBids[tokenId] = msg.value;
+    highestBidders[tokenId] = msg.sender;
+    pendingReturns[msg.sender] += highestBid;
+    
+    emit HighestBidIncreased(tokenId, msg.sender, msg.value);
+  }
+
+  /**
+   * Bidders can withdraws their overbid funds or creators can
+   * withdraw their rewards.
+   */
+  function withdraw() public returns (bool) {
+    uint amount = pendingReturns[msg.sender];
+    if (amount > 0) {
+      // It is important to set this to zero because the recipient
+      // can call this function again as part of the receiving call
+      // before `send` returns.
+      pendingReturns[msg.sender] = 0;
+
+      if (!payable(msg.sender).send(amount)) {
+          // No need to call throw here, just reset the amount owing
+          pendingReturns[msg.sender] = amount;
+          return false;
+      }
     }
+    return true;
+  }
 
-    require(msg.value >= currentPrice, 'Must send at least currentPrice');
+  function auctionEnd(uint256 tokenId) public {
+    address creator = creators[tokenId];
+    uint256 auctionEndTime = auctionEndTimes[tokenId];
+    uint256 highestBid = highestBids[tokenId];
+    address highestBidder = highestBidders[tokenId];
+    bool ended = auctionFinalizations[tokenId];
+
+    require(block.timestamp >= auctionEndTime, "Auction not yet ended.");
+    require(!ended, "auctionEnd has already been called.");
 
     // split price between treasury and creator
-    uint256 treasuryFee = msg.value / 100; // 1%
-    uint256 creatorRewards = msg.value - treasuryFee;
-    creator.transfer(creatorRewards);
-    prices[tokenId] = msg.value;
+    uint256 treasuryFee = highestBid / 100; // 1%
+    uint256 creatorRewards = highestBid - treasuryFee;
+    pendingReturns[creator] += creatorRewards;
+    auctionFinalizations[tokenId] = true;
+    emit AuctionEnded(tokenId, highestBidder, highestBid);
 
-    return transferFrom(from, to, tokenId);
+    // if no bids, then transfer to creator
+    if (highestBidder == address(0)) {
+      transferFrom(address(this), creator, tokenId);
+    } else {
+      transferFrom(address(this), highestBidder, tokenId);
+    }
   }
 
   function getCurrentTokenId() external view returns (uint256) {                  
     return _tokenIds.current();
   }
 
-  function getMintTime(uint256 tokenId) external view returns (uint256) {
-    return mintTimes[tokenId];
+  function getNextTokenId() external view returns (uint256) {                  
+    return _tokenIds.current() + 1;
   }
 
-  function getIsExpired(uint256 tokenId) private view returns (bool) {
-    uint256 timeDiff = block.timestamp - mintTimes[tokenId];
-    return timeDiff > priceSeed.expirationTime;
-  }
+  function getTokenInfo(
+    uint256 tokenId
+  ) external view returns (address, address, uint256, uint256, bool) {
+    require(_exists(tokenId), "Token does not exist");
+  
+    address creator = creators[tokenId];
+    address highestBidder = highestBidders[tokenId];
+    uint256 highestBid = highestBids[tokenId];
+    uint256 auctionEndTime = auctionEndTimes[tokenId];
+    bool auctionEnded = auctionFinalizations[tokenId];
 
-  function price(uint256 tokenId) private view returns (uint256) {
-    uint256 timeDiff = block.timestamp - mintTimes[tokenId];
-    if (timeDiff < priceSeed.timeDelta ) {
-      return priceSeed.maxPrice;
-    }
-    uint256 priceDiff = uint256(timeDiff / priceSeed.timeDelta) * priceSeed.priceDelta;
-    if (priceDiff >= priceSeed.maxPrice - priceSeed.minPrice) {
-      return priceSeed.minPrice;
-    }
-    return priceSeed.maxPrice - priceDiff;
-  }
-
-  function tokenPrice(uint256 tokenId) public view returns (uint256) {
-    address owner = ownerOf(tokenId);
-
-    if (owner == address(this)) {
-      return price(tokenId);
-    }
-
-    return prices[tokenId];
+    return (creator, highestBidder, highestBid, auctionEndTime, auctionEnded);
   }
 }

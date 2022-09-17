@@ -2,15 +2,16 @@ import { Flex } from "@chakra-ui/react";
 
 import { Header } from "../components/Header";
 import { GallerySlider } from "../components/GallerySlider";
-import { useTokenDetails } from "../hooks/useTokenDetails";
+import { useTokenInfo } from "../hooks/useTokenInfo";
+import { useTokenUri } from "../hooks/useTokenUri";
 
 export function Gallery() {
-  const tokenDetails = useTokenDetails();
-  console.log(tokenDetails);
+  const tokenInfo = useTokenInfo(1);
+  const tokenUri = useTokenUri(1);
+  console.log(tokenInfo.data, tokenUri.data);
   return (
     <Flex direction="column">
       <Header />
-
       <GallerySlider />
     </Flex>
   );
