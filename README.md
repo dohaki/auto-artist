@@ -33,6 +33,12 @@ deploy your contract:
 npm run deploy:local
 ```
 
+Also, you can mint an NFT by running the following:
+
+```sh
+npx hardhat mint --network localhost --creator 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 --cid QmbJaJGaJMJ4TqbTKKc3RiBXSLNaD57XsoKt5Q6mhwrVUF
+```
+
 Finally, we can run the frontend with:
 
 ```sh
