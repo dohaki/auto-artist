@@ -1,18 +1,14 @@
 import { useContractRead } from "wagmi";
 
-import { config } from "../config";
-
-import artifact from "../contracts/AutoArtist.json";
-import addresses from "../contracts/contract-address.json";
-
-const address = addresses[config.networkName].AutoArtist;
+import { contractAddress, contractAbi } from "../constants";
 
 export function useTokenInfo(tokenId) {
   const getTokenInfoRead = useContractRead({
-    addressOrName: address,
-    contractInterface: artifact.abi,
+    addressOrName: contractAddress,
+    contractInterface: contractAbi,
     functionName: "getTokenInfo",
     args: tokenId,
+    cacheOnBlock: true,
   });
 
   return {
@@ -23,6 +19,7 @@ export function useTokenInfo(tokenId) {
       highestBid: getTokenInfoRead.data?.at(2),
       auctionEndTime: getTokenInfoRead.data?.at(3),
       auctionEnded: getTokenInfoRead.data?.at(4),
+      prompt: getTokenInfoRead.data?.at(5),
     },
   };
 }

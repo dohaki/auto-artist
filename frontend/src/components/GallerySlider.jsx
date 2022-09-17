@@ -6,57 +6,106 @@ import {
   Stat,
   StatLabel,
   StatNumber,
-  Input,
-  InputGroup,
-  InputLeftElement,
   Container,
+  Box,
 } from "@chakra-ui/react";
+import { utils } from "ethers";
+import { useNavigate } from "react-router-dom";
 
 import { NftCard } from "./NftCard";
+import { BidInput } from "./BidInput";
+import { Finalize } from "./Finalize";
 
-export function GallerySlider() {
+import { useTokenInfo } from "../hooks/useTokenInfo";
+import { useTokenUri } from "../hooks/useTokenUri";
+import { useTokenIdToDisplay } from "../hooks/useTokenIdToDisplay";
+import { useCurrentTokenId } from "../hooks/useCurrentTokenId";
+
+import { truncateAddress } from "../utils";
+
+export function GallerySlider({ tokenId }) {
+  const currentTokenId = useCurrentTokenId();
+  const tokenIdToDisplay = useTokenIdToDisplay(tokenId);
+
+  const tokenUri = useTokenUri(tokenIdToDisplay);
+  const tokenInfo = useTokenInfo(tokenIdToDisplay);
+
+  const navigate = useNavigate();
+
+  const isLoading =
+    tokenUri.isLoading || tokenInfo.isLoading || currentTokenId.isLoading;
+
+  const didAuctionEnd = Date.now() / 1000 > tokenInfo.data?.auctionEndTime;
+
   return (
     <Container maxW="container.md">
-      <Flex direction="row" gap={8}>
-        <NftCard />
-        <Flex direction="column" gap={4}>
-          <Flex direction="row" alignItems="center" gap={4}>
-            <Button size="sm">{"<"}</Button>
-            <Button size="sm">{">"}</Button>
-            <Text>Date</Text>
-          </Flex>
-          <Heading>AA #1</Heading>
-          <Flex>
-            <Stat>
-              <StatLabel>Current price</StatLabel>
-              <StatNumber>0.01 Ξ</StatNumber>
-            </Stat>
-            <Stat>
-              <StatLabel>Next price in</StatLabel>
-              <StatNumber>1 h</StatNumber>
-            </Stat>
-          </Flex>
-          <Flex>
-            <Stat>
-              <StatLabel>Auction ends in</StatLabel>
-              <StatNumber>1 h</StatNumber>
-            </Stat>
-          </Flex>
-          <Flex>
-            <Stat>
-              <StatLabel>Creator</StatLabel>
-              <StatNumber>0x</StatNumber>
-            </Stat>
-          </Flex>
-          <Flex gap={4}>
-            <InputGroup>
-              <InputLeftElement pointerEvents="none" children="Ξ" />
-              <Input placeholder="Enter amount" />
-            </InputGroup>
-            <Button colorScheme="purple">Buy</Button>
+      {isLoading ? (
+        <Box>Loading...</Box>
+      ) : (
+        <Flex direction="row" gap={8}>
+          <NftCard tokenUri={tokenUri.data} prompt={tokenInfo.data?.prompt} />
+          <Flex direction="column" gap={4}>
+            <Flex direction="row" alignItems="center" gap={4}>
+              <Button
+                disabled={tokenIdToDisplay === 1}
+                size="sm"
+                onClick={() => navigate(`/${Number(tokenIdToDisplay) - 1}`)}
+              >
+                {"<"}
+              </Button>
+              <Button
+                disabled={
+                  Number(tokenIdToDisplay) === currentTokenId.data.toNumber()
+                }
+                size="sm"
+                onClick={() => navigate(`/${Number(tokenIdToDisplay) + 1}`)}
+              >
+                {">"}
+              </Button>
+            </Flex>
+            <Heading>AA #{tokenIdToDisplay}</Heading>
+            <Flex>
+              <Stat>
+                <StatLabel>Highest bid</StatLabel>
+                <StatNumber>
+                  Ξ {utils.formatEther(tokenInfo.data?.highestBid || 0)}
+                </StatNumber>
+              </Stat>
+              <Stat>
+                <StatLabel>
+                  {didAuctionEnd ? "Auction ended" : "Auction ends in"}
+                </StatLabel>
+                <StatNumber>
+                  {tokenInfo.data?.auctionEndTime?.toNumber()}
+                </StatNumber>
+              </Stat>
+            </Flex>
+            <Flex>
+              <Stat>
+                <StatLabel>Highest bidder</StatLabel>
+                <StatNumber>
+                  {truncateAddress(tokenInfo.data?.highestBidder)}
+                </StatNumber>
+              </Stat>
+            </Flex>
+            <Flex>
+              <Stat>
+                <StatLabel>Creator</StatLabel>
+                <StatNumber>
+                  {truncateAddress(tokenInfo.data?.creator)}
+                </StatNumber>
+              </Stat>
+            </Flex>
+            <Flex gap={4}>
+              {didAuctionEnd ? (
+                <Finalize token={tokenIdToDisplay} />
+              ) : (
+                <BidInput tokenId={tokenIdToDisplay} />
+              )}
+            </Flex>
           </Flex>
         </Flex>
-      </Flex>
+      )}
     </Container>
   );
 }

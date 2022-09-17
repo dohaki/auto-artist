@@ -3,7 +3,8 @@ const fs = require("fs");
 task("mint", "Mint NFT")
   .addParam("creator", "The address of creator")
   .addParam("cid", "NFT image CID")
-  .setAction(async ({ creator, cid }, { ethers }) => {
+  .addParam("prompt", "AI prompt phrase")
+  .setAction(async ({ creator, cid, prompt }, { ethers }) => {
     if (network.name === "hardhat") {
       console.warn(
         "You are running the faucet task with Hardhat network, which" +
@@ -19,6 +20,11 @@ task("mint", "Mint NFT")
 
     if (!cid) {
       console.error("Argument 'cid' is not a valid string");
+      return;
+    }
+
+    if (!prompt) {
+      console.error("Argument 'prompt' is not a valid string");
       return;
     }
 
@@ -49,12 +55,12 @@ task("mint", "Mint NFT")
       return;
     }
 
-    const tx = await autoArtist.mint(creator, `ipfs://${cid}`);
+    const tx = await autoArtist.mint(creator, `ipfs://${cid}`, prompt);
     await tx.wait();
 
     const tokenId = await autoArtist.getCurrentTokenId();
 
     console.log(
-      `Minted new token with id ${tokenId}, creator ${creator} and uri ipfs://${cid}`
+      `Minted new token with id ${tokenId}, creator ${creator}, uri ipfs://${cid} and prompt '${prompt}'`
     );
   });

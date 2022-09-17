@@ -2,11 +2,12 @@ import { useContractRead } from "wagmi";
 
 import { contractAddress, contractAbi } from "../constants";
 
-export function useTokenUri(tokenId) {
-  return useContractRead({
+export function useCurrentTokenId() {
+  const getCurrentTokenId = useContractRead({
     addressOrName: contractAddress,
     contractInterface: contractAbi,
-    functionName: "tokenURI",
-    args: tokenId,
+    functionName: "getCurrentTokenId",
   });
+
+  return getCurrentTokenId;
 }

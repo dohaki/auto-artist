@@ -7,4 +7,8 @@ export const router = createBrowserRouter([
     path: "/:tokenId",
     element: <Gallery />,
   },
+  {
+    path: "/",
+    element: <Gallery />,
+  },
 ]);

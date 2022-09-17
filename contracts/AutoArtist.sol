@@ -11,6 +11,8 @@ contract AutoArtist is ERC721URIStorage, Ownable {
 
   // mapping token id => creator address
   mapping(uint256 => address payable) public creators;
+  // mapping token id => prompt 
+  mapping(uint256 => string) public prompts;
   // mapping token id => highest bids / prices
   mapping(uint256 => uint256) public highestBids;
   // mapping token id => highest bidder
@@ -35,7 +37,8 @@ contract AutoArtist is ERC721URIStorage, Ownable {
 
   function mint(
     address payable creator,
-    string memory tokenURI
+    string memory tokenURI,
+    string memory prompt
   ) public onlyOwner returns (uint256) {
     _tokenIds.increment();
 
@@ -44,6 +47,7 @@ contract AutoArtist is ERC721URIStorage, Ownable {
     _setTokenURI(id, tokenURI);
     creators[id] = creator;
     auctionEndTimes[id] = block.timestamp + biddingDuration;
+    prompts[id] = prompt;
  
     return id;
   }
@@ -106,9 +110,9 @@ contract AutoArtist is ERC721URIStorage, Ownable {
 
     // if no bids, then transfer to creator
     if (highestBidder == address(0)) {
-      transferFrom(address(this), creator, tokenId);
+      _transfer(address(this), creator, tokenId);
     } else {
-      transferFrom(address(this), highestBidder, tokenId);
+      _transfer(address(this), highestBidder, tokenId);
     }
   }
 
@@ -122,7 +126,7 @@ contract AutoArtist is ERC721URIStorage, Ownable {
 
   function getTokenInfo(
     uint256 tokenId
-  ) external view returns (address, address, uint256, uint256, bool) {
+  ) external view returns (address, address, uint256, uint256, bool, string memory) {
     require(_exists(tokenId), "Token does not exist");
   
     address creator = creators[tokenId];
@@ -130,7 +134,8 @@ contract AutoArtist is ERC721URIStorage, Ownable {
     uint256 highestBid = highestBids[tokenId];
     uint256 auctionEndTime = auctionEndTimes[tokenId];
     bool auctionEnded = auctionFinalizations[tokenId];
+    string memory prompt = prompts[tokenId];
 
-    return (creator, highestBidder, highestBid, auctionEndTime, auctionEnded);
+    return (creator, highestBidder, highestBid, auctionEndTime, auctionEnded, prompt);
   }
 }
