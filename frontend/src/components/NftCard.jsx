@@ -20,5 +20,5 @@ export function NftCard({ tokenUri, prompt }) {
 
 function tokenUriToPinataUrl(tokenUri) {
   const cid = tokenUri.replace("ipfs://", "");
-  return `https://gateway.pinata.cloud/ipfs/${cid}`;
+  return `https://auto-artist.mypinata.cloud/ipfs/${cid}`;
 }
