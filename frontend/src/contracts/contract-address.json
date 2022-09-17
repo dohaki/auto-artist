@@ -1,0 +1,8 @@
+{
+  "localhost": {
+    "AutoArtist": "0x5FbDB2315678afecb367f032d93F642f64180aa3"
+  },
+  "goerli": {
+    "AutoArtist": "0x17496824Ba574A4e9De80110A91207c4c63e552a"
+  }
+}

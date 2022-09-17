@@ -4,7 +4,8 @@
   "description": "A boilerplate repository to get you started with Hardhat and Ethereum development",
   "scripts": {
     "test": "hardhat test",
-    "deploy:local": "hardhat run scripts/deploy.js --network localhost"
+    "deploy:local": "hardhat run scripts/deploy.js --network localhost",
+    "deploy:goerli": "hardhat run scripts/deploy.js --network goerli"
   },
   "repository": {
     "type": "git",
@@ -26,6 +27,7 @@
     "@nomiclabs/hardhat-etherscan": "^3.0.0",
     "@openzeppelin/contracts": "^4.7.3",
     "chai": "^4.2.0",
+    "dotenv": "^16.0.2",
     "ethers": "^5.4.7",
     "hardhat": "^2.11.0",
     "hardhat-gas-reporter": "^1.0.8",

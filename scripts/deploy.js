@@ -22,7 +22,7 @@ async function main() {
 
   const AutoArtist = await ethers.getContractFactory("AutoArtist");
   const autoArtist = await AutoArtist.deploy(
-    1 * 10 * 60 // bidding duration in seconds
+    process.env.BIDDING_DURATION || 1 * 10 * 60 // bidding duration in seconds
   );
   await autoArtist.deployed();
 

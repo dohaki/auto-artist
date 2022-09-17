@@ -2,6 +2,8 @@
 
 This repository contains the "AutoArtist" submission for the ETHBerlin3 hackathon.
 
+Contract is deployed to [Goerli](https://goerli.etherscan.io/address/0x17496824Ba574A4e9De80110A91207c4c63e552a).
+
 ## Quick start
 
 The first things you need to do are cloning this repository and installing its
