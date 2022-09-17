@@ -1,10 +1,9 @@
-// This is a script for deploying your contracts. You can adapt it to deploy
-// yours, or create new ones.
-
 const path = require("path");
+const hre = require("hardhat");
+
+const { ethers } = hre;
 
 async function main() {
-  // This is just a convenience check
   if (network.name === "hardhat") {
     console.warn(
       "You are trying to deploy a contract to the Hardhat Network, which" +
@@ -13,7 +12,6 @@ async function main() {
     );
   }
 
-  // ethers is available in the global scope
   const [deployer] = await ethers.getSigners();
   console.log(
     "Deploying the contracts with the account:",
@@ -22,34 +20,59 @@ async function main() {
 
   console.log("Account balance:", (await deployer.getBalance()).toString());
 
-  const Token = await ethers.getContractFactory("Token");
-  const token = await Token.deploy();
-  await token.deployed();
+  const AutoArtist = await ethers.getContractFactory("AutoArtist");
+  const autoArtist = await AutoArtist.deploy({
+    maxPrice: ethers.utils.parseEther("1"),
+    minPrice: ethers.utils.parseEther("0.001"),
+    priceDelta: ethers.utils.parseEther("0.001"),
+    timeDelta: 5 * 60, // 5 mins
+    expirationTime: 30 * 60, // 24 hours
+  });
+  await autoArtist.deployed();
 
-  console.log("Token address:", token.address);
+  console.log("AutoArtist address:", autoArtist.address);
 
-  // We also save the contract's artifacts and address in the frontend directory
-  saveFrontendFiles(token);
+  saveFrontendFiles(network.name, autoArtist);
 }
 
-function saveFrontendFiles(token) {
+function saveFrontendFiles(networkName, autoArtist) {
   const fs = require("fs");
-  const contractsDir = path.join(__dirname, "..", "frontend", "src", "contracts");
+  const contractsDir = path.join(
+    __dirname,
+    "..",
+    "frontend",
+    "src",
+    "contracts"
+  );
 
   if (!fs.existsSync(contractsDir)) {
     fs.mkdirSync(contractsDir);
   }
 
+  const addressesFilePath = path.join(contractsDir, "contract-address.json");
+  const existingAddressesFile = fs.existsSync(addressesFilePath)
+    ? JSON.parse(fs.readFileSync(addressesFilePath))
+    : {};
+
   fs.writeFileSync(
     path.join(contractsDir, "contract-address.json"),
-    JSON.stringify({ Token: token.address }, undefined, 2)
+    JSON.stringify(
+      {
+        ...existingAddressesFile,
+        [networkName]: {
+          AutoArtist: autoArtist.address,
+        },
+      },
+      undefined,
+      2
+    )
   );
 
-  const TokenArtifact = artifacts.readArtifactSync("Token");
+  const AutoArtistArtifact = artifacts.readArtifactSync("AutoArtist");
 
   fs.writeFileSync(
-    path.join(contractsDir, "Token.json"),
-    JSON.stringify(TokenArtifact, null, 2)
+    path.join(contractsDir, "AutoArtist.json"),
+    JSON.stringify(AutoArtistArtifact, null, 2)
   );
 }
 
