@@ -30,7 +30,7 @@ Then, on a new terminal, go to the repository's root folder and run this to
 deploy your contract:
 
 ```sh
-npm run deploy:localhost
+npm run deploy:local
 ```
 
 Finally, we can run the frontend with:
