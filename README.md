@@ -15,8 +15,8 @@ The first things you need to do are cloning this repository and installing its
 dependencies:
 
 ```sh
-git clone https://github.com/NomicFoundation/hardhat-boilerplate.git
-cd hardhat-boilerplate
+git clone https://github.com/dohaki/auto-artist
+cd auto-artist
 npm install
 ```
 
@@ -30,7 +30,7 @@ Then, on a new terminal, go to the repository's root folder and run this to
 deploy your contract:
 
 ```sh
-npx hardhat run scripts/deploy.js --network localhost
+npm run deploy:localhost
 ```
 
 Finally, we can run the frontend with:
