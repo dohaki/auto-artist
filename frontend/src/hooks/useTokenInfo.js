@@ -9,6 +9,7 @@ export function useTokenInfo(tokenId) {
     functionName: "getTokenInfo",
     args: tokenId,
     cacheOnBlock: true,
+    staleTime: 15_000,
   });
 
   return {

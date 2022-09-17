@@ -79,6 +79,7 @@ export function GallerySlider({ tokenId }) {
               <AuctionEndCountdown
                 didAuctionEnd={didAuctionEnd}
                 auctionEndTime={tokenInfo.data?.auctionEndTime?.toNumber()}
+                onEnd={tokenInfo.refetch()}
               />
             </Flex>
             <Flex>

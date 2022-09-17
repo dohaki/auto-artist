@@ -10,6 +10,7 @@ dayjs.extend(duration);
 export function AuctionEndCountdown({
   didAuctionEnd,
   auctionEndTime = Date.now() / 1000,
+  onEnd,
 }) {
   const [countdown, setCountdown] = useState("");
 
@@ -28,13 +29,17 @@ export function AuctionEndCountdown({
             .format("ss")
             .replace("-", "")} sec`
         );
+
+        if (dayjs(Date.now()).isAfter(dayjs.unix(auctionEndTime))) {
+          onEnd();
+        }
       }, 1000);
 
       return () => clearInterval(intervalId);
     } else {
       setCountdown(dayjs.unix(auctionEndTime).fromNow());
     }
-  }, [auctionEndTime, didAuctionEnd]);
+  }, [auctionEndTime, didAuctionEnd, onEnd]);
 
   return (
     <Stat>
