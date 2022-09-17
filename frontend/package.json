@@ -7,6 +7,7 @@
     "@emotion/react": "^11.10.4",
     "@emotion/styled": "^11.10.4",
     "@rainbow-me/rainbowkit": "^0.6.0",
+    "dayjs": "^1.11.5",
     "ethers": "^5.4.7",
     "framer-motion": "^6.5.1",
     "react": "^18.2.0",

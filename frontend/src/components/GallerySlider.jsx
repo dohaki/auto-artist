@@ -1,6 +1,5 @@
 import {
   Button,
-  Text,
   Flex,
   Heading,
   Stat,
@@ -15,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 import { NftCard } from "./NftCard";
 import { BidInput } from "./BidInput";
 import { Finalize } from "./Finalize";
+import { AuctionEndCountdown } from "./AuctionEndCountdown";
 
 import { useTokenInfo } from "../hooks/useTokenInfo";
 import { useTokenUri } from "../hooks/useTokenUri";
@@ -36,6 +36,7 @@ export function GallerySlider({ tokenId }) {
     tokenUri.isLoading || tokenInfo.isLoading || currentTokenId.isLoading;
 
   const didAuctionEnd = Date.now() / 1000 > tokenInfo.data?.auctionEndTime;
+  const isAuctionFinalized = tokenInfo.data?.auctionEnded;
 
   return (
     <Container maxW="container.md">
@@ -66,23 +67,25 @@ export function GallerySlider({ tokenId }) {
             <Heading>AA #{tokenIdToDisplay}</Heading>
             <Flex>
               <Stat>
-                <StatLabel>Highest bid</StatLabel>
+                <StatLabel>
+                  {isAuctionFinalized ? "Sold for" : "Highest bid"}
+                </StatLabel>
                 <StatNumber>
                   Ξ {utils.formatEther(tokenInfo.data?.highestBid || 0)}
                 </StatNumber>
               </Stat>
-              <Stat>
-                <StatLabel>
-                  {didAuctionEnd ? "Auction ended" : "Auction ends in"}
-                </StatLabel>
-                <StatNumber>
-                  {tokenInfo.data?.auctionEndTime?.toNumber()}
-                </StatNumber>
-              </Stat>
+            </Flex>
+            <Flex>
+              <AuctionEndCountdown
+                didAuctionEnd={didAuctionEnd}
+                auctionEndTime={tokenInfo.data?.auctionEndTime?.toNumber()}
+              />
             </Flex>
             <Flex>
               <Stat>
-                <StatLabel>Highest bidder</StatLabel>
+                <StatLabel>
+                  {isAuctionFinalized ? "Owner" : "Highest bidder"}
+                </StatLabel>
                 <StatNumber>
                   {truncateAddress(tokenInfo.data?.highestBidder)}
                 </StatNumber>
@@ -98,7 +101,9 @@ export function GallerySlider({ tokenId }) {
             </Flex>
             <Flex gap={4}>
               {didAuctionEnd ? (
-                <Finalize token={tokenIdToDisplay} />
+                !isAuctionFinalized ? (
+                  <Finalize token={tokenIdToDisplay} />
+                ) : null
               ) : (
                 <BidInput tokenId={tokenIdToDisplay} />
               )}
