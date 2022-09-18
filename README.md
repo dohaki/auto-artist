@@ -1,4 +1,4 @@
-# ETHBerlin - AutoArtist
+# ETHB3rlin - Arty
 
 This repository contains the "Arty" submission for the ETHB3rlin hackathon.
 
