@@ -1,5 +1,6 @@
-import { Flex, Box, Heading } from "@chakra-ui/react";
+import { Flex, Box, Heading, Link } from "@chakra-ui/react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { ChatIcon } from '@chakra-ui/icons';
 
 export function Header() {
   return (
@@ -10,7 +11,10 @@ export function Header() {
       padding={8}
       marginBottom={16}
     >
-      <Heading size="md">AutoArtist</Heading>
+      <Heading size="md">Arty</Heading>
+      <Link href='https://discord.gg/zrcWQCKnRB' isExternal>
+      Create art with us <ChatIcon mx='2px' />
+      </Link>
       <Box>
         <ConnectButton />
       </Box>
