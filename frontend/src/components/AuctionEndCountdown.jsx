@@ -39,7 +39,7 @@ export function AuctionEndCountdown({
     } else {
       setCountdown(dayjs.unix(auctionEndTime).fromNow());
     }
-  }, [auctionEndTime, didAuctionEnd, onEnd]);
+  }, [auctionEndTime, didAuctionEnd]);
 
   return (
     <Stat>
