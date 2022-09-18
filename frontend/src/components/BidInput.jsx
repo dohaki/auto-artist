@@ -6,6 +6,7 @@ import { useTokenInfo } from "../hooks/useTokenInfo";
 
 export function BidInput({ tokenId }) {
   const [bidAmount, setBidAmount] = useState();
+  const [txHash, setTxHash] = useState();
 
   const bid = useBid(tokenId, bidAmount);
   const tokenInfo = useTokenInfo(tokenId);
@@ -24,12 +25,18 @@ export function BidInput({ tokenId }) {
         colorScheme="purple"
         disabled={!bidAmount || !bid.write}
         onClick={() => {
-          bid?.writeAsync().then(() => {
-            setBidAmount("");
-            tokenInfo.refetch();
-          });
+          bid
+            ?.writeAsync()
+            .then((data) => {
+              setTxHash(data.hash);
+              return data.wait();
+            })
+            .then((receipt) => {
+              setBidAmount("");
+              tokenInfo.refetch();
+            });
         }}
-        isLoading={bid.isLoading}
+        isLoading={bid.isLoading || (bidAmount && txHash)}
       >
         Place bid
       </Button>
