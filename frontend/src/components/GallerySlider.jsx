@@ -103,7 +103,7 @@ export function GallerySlider({ tokenId }) {
             <Flex gap={4}>
               {didAuctionEnd ? (
                 !isAuctionFinalized ? (
-                  <Finalize token={tokenIdToDisplay} />
+                  <Finalize tokenId={tokenIdToDisplay} />
                 ) : null
               ) : (
                 <BidInput tokenId={tokenIdToDisplay} />

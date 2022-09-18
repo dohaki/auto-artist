@@ -26,7 +26,7 @@ export function Finalize({ tokenId }) {
             tokenInfo.refetch();
           });
       }}
-      isLoading={finalize.isLoading}
+      isLoading={finalize.isLoading || txHash}
     >
       Finalize
     </Button>
